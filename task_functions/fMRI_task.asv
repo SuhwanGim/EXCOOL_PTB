@@ -1,31 +1,19 @@
-function fMRI_task(SID, ts, sessionNumber, runNumber, ips, opts)
+function fMRI_task(SID, ts, runNumber, opts)
 %
 %  :: WORKING ON::
 %       : Suhwan Gim (suhwan.gim.psych@gmail.com)
 %               Last updated (July. 23. 2022)
 %
-%  :: A goal of this study ::
-%       : Participants will be told that you are going to experience
-%       thermal stimulus and report how you feel.
-%
-%       The aim of this study is to exmaine the extent to which observing
-%       effects on pain expression.
-%
 %   :: The things you should know on this functions
 %       - This function is for running experimental paradigm for Suhwan's
 %       project (disdaq = 10 secs).
 %
-%       1) Thermal_stimulus
+%       1) See something 
 %       2) rating
-%       3) displaying other's facial expression
 %
 %   :: Requirements for this experiments and fucntions ::
 %       1) Latest version of PsychophysicsToolbox3
 %       2) Recommeded version of Gstreamer (see help GStreamer)
-%       3) Webcam (In this exp, Logi 1080p)
-%       4) Pathway with ATS thermode
-%       5) Imaging Acquisitions Toolboxes in MATLAB
-%       6) Additional Webcam driver
 %
 %   ====================================================================%
 %   ** Usage **
@@ -33,16 +21,10 @@ function fMRI_task(SID, ts, sessionNumber, runNumber, ips, opts)
 %   ** In singal **
 %       - Scanner trigger
 %       - obserber's webcam
-%   ** Out singal **
-%       - Scanner trigger to obs computer
-%       - Pathway trigger to path computer
 %   ** Optional Input **
 %       - 'test': Lower reslutions. (1600 900 px)
 %       - 'fmri': If you run this script in sMRI . This option can
 %       receive 's' trigger from sync box.
-%       - 'obs' : sent fMRI trigger to observer task computer
-%       - 'pathway':
-%       - 'webcam':
 %
 %   ====================================================================
 %% SETUP: Check OPTIONS
@@ -52,18 +34,7 @@ function fMRI_task(SID, ts, sessionNumber, runNumber, ips, opts)
 %% SETUP: OPTIONS
 testmode = opts.testmode;
 dofmri = opts.dofmri;
-doWebcam = opts.doFace;
-doPathway = opts.Pathway;
-doSendTrigger = opts.obs;
 start_trial = 1;
-% for pathway
-ip = ips.pathway_IP;
-port = ips.pathway_port;
-% for MY PC ip and port
-% it is for sending trigger packet
-my_ip = ips.my_IP;
-my_port = ips.my_port;
-
 %% SETUP: GLOBAL variables
 global theWindow W H window_num;                  % window screen property
 global white red red_Alpha orange bgcolor yellow; % set color
@@ -76,54 +47,23 @@ global cir_center
 %% SETUP: DATA and Subject INFO
 savedir = fullfile(pwd,'data');
 % subfunction %start_trial
-[fname,trial_previous] = subjectinfo_check_SEP(SID.ExpID, savedir, sessionNumber,runNumber, 'fMRI');
+[fname,trial_previous] = subjectinfo_check_EXOOL(SID.ExpID, savedir,runNumber, 'task');
 
-% Load calibration
-load(fullfile(savedir, 'PainCali_data',sprintf('SEP_PainCali_data_Sub-%s_session01_run01.mat',SID.ExpID)),'reg');
 if exist(fname, 'file')
     % load previous dat files
     load(fname,'dat');
     start_trial = trial_previous; % start with this trial
 else
     % generate and save data
-    dat.ver= 'SEP_V001_May-13-2021_Suhwan';
+    dat.ver= 'EXCOOL_Ver1_July-23-2022_Suhwan';
     dat.subjects = SID;     % subject name
     dat.datafile = fname;  % filename
     dat.starttime = datestr(clock, 0); % date-time
     dat.starttime_getsecs = GetSecs; % in the same format of timestamps for each trial
-    dat.session_number = sessionNumber;
     dat.run_umber = runNumber;
     dat.ts = ts; % trial sequences (predefiend)
     save(dat.datafile,'dat');
 end
-%% SETUP: Webcam
-if doWebcam
-    CAMLIST = webcamlist;
-    camObj = webcam(find(contains(CAMLIST,'HD'))); % The resoultion of webcam can be modified in WinOS
-    %camObj.Resolution = {''};
-end
-%% SETUP: TCP/IP (trigger to behavioral computer)
-if doSendTrigger
-    trg_dat = 100; %set packet 
-    trg_dat = im2double(trg_dat);
-    s = whos('data');
-    tcpipServer = tcpip(my_ip, my_port, 'NetworkRole','server'); % Build the tcpip
-    set(tcpipServer, 'OutputBufferSize',s.bytes);
-end
-%% SETUP: Load pathway program
-degree = []; 
-path_prog = load_PathProgram('MPC'); % SEP
-for i = 1:numel(reg.FinalLMH_5Level)
-    for ii = 1:length(path_prog)
-        if reg.FinalLMH_5Level(i) == path_prog{ii,1}
-            degree{i,1} = bin2dec(path_prog{ii,2});
-        else
-            %do nothing
-        end
-    end
-end
-stim_degree=cell2mat(degree);
-dat.stim_degree = stim_degree; % save 
 %% SETUP: Screen size
 Screen('Clear');
 Screen('CloseAll');
@@ -161,10 +101,6 @@ anchor_y = H/2+10+scale_H;
 lb = 5*W/18;            % left bound
 rb = 13*W/18;           % right bound
 
-% For cont rating scale
-lb1 = 1*W/18; %
-rb1 = 17*W/18; %
-
 % For overall rating scale
 lb2 = 5*W/18; %
 rb2 = 13*W/18; %s
@@ -188,11 +124,6 @@ Screen('TextSize', theWindow, fontsize);
 Screen('TextFont', theWindow, font); % setting font
 %% START: SCREEN FOR PARTICIPANTS
 try
-    %% PREP: BEFORE SCAN 
-    % Themode_test (with highest degree based on calibration data)
-    pathway_test(ip, port, 'MRI_SEP', reg);
-    % Explain grid-scale every run
-    exp_scale('overall',0);
     %% PREP: INSTRUCTION before task
     while (1)
         [~,~,keyCode] = KbCheck;
@@ -201,7 +132,7 @@ try
         elseif keyCode(KbName('q'))==1
             abort_experiment;
         end
-        display_expmessage('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac,trigger, USB, etc). \n 모두 준비되었으면 SPACE BAR를 눌러주세요.'); % until space; see subfunctions
+        display_expmessage('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac,trigger, USB, etc). \n 모두 준비되었으면 실험자는 SPACE BAR를 눌러주세요.'); % until space; see subfunctions
     end
     
     while (1)
@@ -227,33 +158,23 @@ try
     end
     
     
-    %% PREP: do fMRI (disdaq_sec = about 10) and 
+    %% PREP: do fMRI (disdaq_sec = about 10 secs) and 
     if dofmri
-        dat.disdaq_sec = 10 + 8 ; % 18 TRs
+        dat.disdaq_sec = 18 ; % 10 TRs
         fmri_t = GetSecs;
         % gap between 5 key push and the first stimuli (disdaqs: dat.disdaq_sec)
         %Screen(theWindow, 'FillRect', bgcolor, window_rect);
         %DrawFormattedText(theWindow, double('시작합니다...'), 'center', 'center', white, [], [], [], 1.2); % 4 seconds               
     end            
     display_expmessage('시작합니다... ');    
-    %% PREP: Wait 18 secs more 
+    %% PREP: Wait 10 secs more 
     if dofmri
         dat.runscan_starttime = GetSecs;
         waitsec_fromstarttime(fmri_t, 4);        
         % 4 seconds: Blank        
         Screen('Flip', theWindow);
         waitsec_fromstarttime(fmri_t, dat.disdaq_sec); % ADJUST THIS + 8 secs for stable modeling 
-    end    
-    %% PREP : send trigger to the observation computer
-    if doSendTrigger
-        Screen('Flip', theWindow);        
-        dat.sendTriggerStart_timestamp = GetSecs;
-        fopen(tcpipServer);
-        fwrite(tcpipServer, trg_dat(:), 'double'); % send data
-        fclose(tcpipServer);
-        dat.sendTriggerEnd_timestamp = GetSecs;
-        pause(1);
-    end
+    end        
     %% ========================================================= %
     %                   TRIAL START
     % ========================================================== %
@@ -267,62 +188,22 @@ try
         %         1. ITI (fixPoint)
         % --------------------------------------------------------- %
         DrawFormattedText(theWindow, double('+'), 'center', 'center', white, [], [], [], 1.2); % as exactly same as function fixPoint(trial_t, ttp , white, '+') % ITI
-        Screen('Flip', theWindow);
-        if doPathway
-            %-------------Ready for Pathway------------------
-            main(ip,port,1,stim_degree(ts.t{runNumber}{trial_i}.stimlv+1)); %select the program
-            WaitSecs(1);
-            main(ip,port,2); %ready to pre-start
-        end
-        
-        if doWebcam
-            vidnames = fullfile(savedir,'OBS_VID',sprintf('vid_%s_R_%02d_T%02d_thermal_stim.mp4', SID.ObsID, runNumber, trial_i)); %  R00_T00_thermal_stim.mp4 
-            video = VideoWriter(vidnames ,'MPEG-4'); %create the video object
-            open(video); % open the file for writing
-        end
+        Screen('Flip', theWindow);        
         %-------------------------------------------------
         waitsec_fromstarttime(trial_t, ts.t{runNumber}{trial_i}.ITI);
         dat.dat{trial_i}.ITI_EndTime = GetSecs;
-        %fixPoint(trial_t, ts.t{runNumber}{trial_i}.ITI, white, '+') % ITI
+        
         
         
         % --------------------------------------------------------- %
-        %         2. Thermal stimulus (thermal_stim)
+        %         2. Target cue 
         % --------------------------------------------------------- %
         % black screen
-        Screen('Flip',theWindow); % black screen 
-        if doPathway
-            tic;
-            dat.dat{trial_i}.heat_start_txt = main(ip,port,2); % start heat signal
-            dat.dat{trial_i}.heat_onsets_timestamp = GetSecs;
-            dat.dat{trial_i}.heat_trigger_duration = toc;
-        end
-        if doWebcam
-            i=1;         % timestamp for video
-            t = GetSecs;
-            while true
-                if (GetSecs - trial_t) >= (ts.t{runNumber}{trial_i}.ITI + 12)
-                    break;
-                end
-                dat.dat{trial_i}.webcam_timestamp(i) = GetSecs-t;
-                i=i+1;
-                ima = snapshot(camObj);
-                %ima = imresize(ima,0.5,'nearest');                % for low resolution?
-                
-                %write the image to file
-                writeVideo(video,ima);
-                
-                %show webcam images on Screen
-                tex1 = Screen('MakeTexture', theWindow, ima, [], [],[],[],[]);
-                Screen('DrawTexture', theWindow,tex1 ,[], [5*W/18 5*H/18 13*W/18 13*H/18],[],[],[],[],[],[]);
-                Screen('Flip', theWindow);
-            end
-            close(video)
-        else
-            DrawFormattedText(theWindow, double(''), 'center', 'center', white, [], [], [], 1.2); % as exactly same as function fixPoint(trial_t, ttp , white, '+') % ITI
-            Screen('Flip', theWindow);
-            waitsec_fromstarttime(trial_t, ts.t{runNumber}{trial_i}.ITI + 12); % From start + ITI + thermal (12 sec)
-        end
+        Screen('Flip',theWindow); % black screen
+        DrawFormattedText(theWindow, double(''), 'center', 'center', white, [], [], [], 1.2); % as exactly same as function fixPoint(trial_t, ttp , white, '+') % ITI
+        Screen('Flip', theWindow);
+        waitsec_fromstarttime(trial_t, ts.t{runNumber}{trial_i}.ITI + 12); % From start + ITI + thermal (12 sec)
+        
         
         % --------------------------------------------------------- %
         %         3. ISI1
@@ -333,7 +214,7 @@ try
         dat.dat{trial_i}.ISI1_EndTime=GetSecs;
         
         % --------------------------------------------------------- %
-        %         4. Ratings 1 (ratings)
+        %         4. Trait 
         % --------------------------------------------------------- %
         ttp = ttp + 5;
         temp_ratings = [];
@@ -354,9 +235,9 @@ try
         dat.dat{trial_i}.ISI2_EndTime=GetSecs;
         
         % --------------------------------------------------------- %
-        %         6. Ratings 2
+        %         6. Ratings 
         % --------------------------------------------------------- %
-        %fixPoint(trial_t, ts.ITI(trial_i,3), white, '+') % ITI
+        
         ttp = ttp + 5;
         temp_ratings = [];
         temp_ratings = get_ratings(ts.t{runNumber}{trial_i}.rating2, ttp, trial_t); % get_ratings(rating_type, total_secs, start_t )

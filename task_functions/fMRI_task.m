@@ -174,7 +174,8 @@ try
         % 4 seconds: Blank        
         Screen('Flip', theWindow);
         waitsec_fromstarttime(fmri_t, dat.disdaq_sec); % ADJUST THIS + 8 secs for stable modeling 
-    end        
+    end 
+    
     %% ========================================================= %
     %                   TRIAL START
     % ========================================================== %
@@ -192,11 +193,11 @@ try
         %-------------------------------------------------
         waitsec_fromstarttime(trial_t, ts.t{runNumber}{trial_i}.ITI);
         dat.dat{trial_i}.ITI_EndTime = GetSecs;
-        %fixPoint(trial_t, ts.t{runNumber}{trial_i}.ITI, white, '+') % ITI
+        
         
         
         % --------------------------------------------------------- %
-        %         2. Thermal stimulus (thermal_stim)
+        %         2. Target cue 
         % --------------------------------------------------------- %
         % black screen
         Screen('Flip',theWindow); % black screen
@@ -214,18 +215,11 @@ try
         dat.dat{trial_i}.ISI1_EndTime=GetSecs;
         
         % --------------------------------------------------------- %
-        %         4. Ratings 1 (ratings)
+        %         4. Trait 
         % --------------------------------------------------------- %
         ttp = ttp + 5;
         temp_ratings = [];
-        temp_ratings = get_ratings(ts.t{runNumber}{trial_i}.rating1, ttp, trial_t); % get_ratings(rating_type, total_secs, start_t )
-        
-        dat.dat{trial_i}.ratings1_end_timestamp = GetSecs;
-        dat.dat{trial_i}.ratings1_con_time_fromstart = temp_ratings.con_time_fromstart;
-        dat.dat{trial_i}.ratings1_con_xy = temp_ratings.con_xy;
-        dat.dat{trial_i}.ratings1_con_clicks = temp_ratings.con_clicks;
-        dat.dat{trial_i}.ratings1_con_r_theta = temp_ratings.con_r_theta;
-        
+        temp_ratings = get_ratings(ttp, trial_t); % get_ratings(rating_type, total_secs, start_t )
         
         % --------------------------------------------------------- %
         %         5. ISI2
@@ -235,19 +229,20 @@ try
         dat.dat{trial_i}.ISI2_EndTime=GetSecs;
         
         % --------------------------------------------------------- %
-        %         6. Ratings 2
+        %         6. Ratings 
         % --------------------------------------------------------- %
-        %fixPoint(trial_t, ts.ITI(trial_i,3), white, '+') % ITI
+        
         ttp = ttp + 5;
         temp_ratings = [];
-        temp_ratings = get_ratings(ts.t{runNumber}{trial_i}.rating2, ttp, trial_t); % get_ratings(rating_type, total_secs, start_t )
+        temp_ratings = get_ratings( ttp, trial_t); % get_ratings(rating_type, total_secs, start_t )
         
-        dat.dat{trial_i}.ratings2_end_timestamp = GetSecs;
-        dat.dat{trial_i}.ratings2_con_time_fromstart = temp_ratings.con_time_fromstart;
-        dat.dat{trial_i}.ratings2_con_xy = temp_ratings.con_xy;
-        dat.dat{trial_i}.ratings2_con_clicks = temp_ratings.con_clicks;
-        dat.dat{trial_i}.ratings2_con_r_theta = temp_ratings.con_r_theta;
+        dat.dat{trial_i}.ratings_end_timestamp = GetSecs;
+        dat.dat{trial_i}.ratings_con_time_fromstart = temp_ratings.con_time_fromstart;
+        dat.dat{trial_i}.ratings_con_xy = temp_ratings.con_xy;
+        dat.dat{trial_i}.ratings_con_clicks = temp_ratings.con_clicks;
+        dat.dat{trial_i}.norms_ratings = temp_ratings.norms_ratings;
         
+                
         % ------------------------------------ %
         %  End of trial (save data)
         % ------------------------------------ %
@@ -321,7 +316,7 @@ end
 %% ------------------------------------------ %
 %           TASK                              %
 %  ------------------------------------------ %
-function temp_ratings = get_ratings(rating_type, total_secs, start_t )
+function temp_ratings = get_ratings(total_secs, start_t)
 
 global theWindow W H window_num;                  % window screen property
 global white red red_Alpha orange bgcolor yellow; % set color
@@ -330,57 +325,43 @@ global lb1 rb1 lb2 rb2;
 global cir_center
 global fontsize
 %%
-if contains(rating_type, 'Intensity')
-    msg = '통증 세기';
-elseif contains(rating_type, 'Unpleasantness')
-    msg = '불쾌';
-end
+
 
 
 rec_i = 0;
 start_while = GetSecs;
-radius = (rb2-lb2)/2; % radius
 SetMouse(cir_center(1),cir_center(2));
 while GetSecs - start_t < total_secs
     [x,y,button]=GetMouse(theWindow);
+    y = H/2+scale_H/2;%bb;
     rec_i= rec_i+1;
-    % if the point goes further than the semi-circle, move the point to
-    % the closest point
-    
-    theta = atan2(cir_center(2)-y,x-cir_center(1));
-    % current euclidean distance
-    curr_r = sqrt((x-cir_center(1))^2+ (y-cir_center(2))^2);
-    % current angle (0 - 180 deg)
-    curr_theta = rad2deg(-theta+pi);
-    % For control a mouse cursor:
-    % send to diameter of semi-circle
-    if y > cir_center(2) %bb
-        y = cir_center(2); %bb;
-        SetMouse(x,y);
-    end
     % send to arc of semi-circle
-    if sqrt((x-cir_center(1))^2+ (y-cir_center(2))^2) > radius
-        x = radius*cos(theta)+cir_center(1);
-        y = cir_center(2)-radius*sin(theta);
-        SetMouse(x,y);
+    if x<lb
+        x = lb;
     end
+    
+    if  x>rb
+        x = rb;
+    end
+    SetMouse(x,y);
+    xloc = num2str((x-lb)./(rb-lb)); % nomalized ratings (from zero to 1) 
+    
     
     msg = double(msg);
     %DrawFormattedText(theWindow, msg, 'center', 150, orange, [], [], [], 2);
     DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize)) msg],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
-    draw_scale('overall_predict_semicircular');
+    draw_scale('line2');
     Screen('DrawDots', theWindow, [x y], 15, orange, [0 0], 1);
     Screen('Flip', theWindow);
     
-    % recording
+    % recording    
     temp_ratings.con_time_fromstart(rec_i,1) = GetSecs-start_while;
-    temp_ratings.con_xy(rec_i,:) = [x-cir_center(1) cir_center(2)-y]./radius;
-    temp_ratings.con_clicks(rec_i,:) = button;
-    temp_ratings.con_r_theta(rec_i,:) = [curr_r/radius curr_theta/180]; %radius and degree?
-    
+    temp_ratings.norms_ratings(rec_i,1) = xloc;
+    temp_ratings.con_xy(rec_i,:) = [x-cir_center(1) cir_center(2)-y];
+    temp_ratings.con_clicks(rec_i,:) = button;        
     
     if button(1)
-        draw_scale('overall_predict_semicircular');
+        draw_scale('line2');
         Screen('DrawDots', theWindow, [x y]', 18, red, [0 0], 1);  % Feedback
         Screen('Flip',theWindow);
         WaitSecs(min(0.5, 5-(GetSecs-start_while)));

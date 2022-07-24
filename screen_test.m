@@ -104,7 +104,8 @@ Screen('BlendFunction', theWindow, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); % For 
 Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
 Screen('TextFont', theWindow, font); % setting font
 Screen('TextSize', theWindow, fontsize);
-%%
+Screen('Preference','TextRenderer',1);
+%
 sTime = GetSecs;
 ready2=0;
 rec=0;
@@ -115,6 +116,7 @@ cir_center = [(lb1+rb1)/2 H*3/4+100];
 SetMouse(cir_center(1), cir_center(2)); % set mouse at the center
 xc = [];
 yc = []; 
+%
 while ~ready2
     %display_expmessage('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac,trigger, USB, etc). \n 모두 준비되었으면 SPACE BAR를 눌러주세요.'); % until space; see subfunctions
     rec=rec+1;
@@ -124,39 +126,38 @@ while ~ready2
     
     rating_type = 'semicircular';
     %draw_scale('overall_motor_semicircular');
-    draw_scale('overall_predict_semicircular_SEP');
+    %draw_scale('overall_predict_semicircular_SEP');
+    draw_scale('line2');
     Screen('DrawDots', theWindow, [x y]', 20, [255 164 0 130], [0 0], 1);  %dif color
     % if the point goes further than the semi-circle, move the point to
     % the closest point
     
-    theta = atan2(cir_center(2)-y,x-cir_center(1));
-    % For control a mouse cursor:
-    % send to diameter of semi-circle
-    if y > cir_center(2) %bb
-        y = cir_center(2); %bb;
-        SetMouse(x,y);
-    end
+    y = H/2+scale_H/2;%bb;
+       
     % send to arc of semi-circle
-    if sqrt((x-cir_center(1))^2+ (y-cir_center(2))^2) > radius
-        x = radius*cos(theta)+cir_center(1);
-        y = cir_center(2)-radius*sin(theta);
-        SetMouse(x,y);
+    if x<lb 
+        x = lb;
     end
     
+    if  x>rb
+        x = rb;
+    end
+    SetMouse(x,y); 
+ 
     
-    %draw_scale('overall_motor_semicircular');
-    theta = rad2deg(theta);
-    theta= 180 - theta;
-    theta = num2str(theta);
+    
+    %draw_scale('overall_motor_semicircular');    
+    
+    xloc = num2str((x-lb)./(rb-lb));
     %DrawFormattedText(theWindow, theta, 'center', 'center', white, [], [], [], 1.2); %Display the degree of the cursur based on cir_center
-    DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize)) theta],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
+    DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize)) xloc],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
 
     disp(theta); %angle
     Screen('DrawDots', theWindow, [xc yc]', 5, yellow, [0 0], 1);  %dif color
     %Screen(theWindow,'DrawLines', [xc yc]', 5, 255);
     Screen('Flip',theWindow);
     if button(1)
-        draw_scale('overall_predict_semicircular_SEP');
+        draw_scale('line2');
         Screen('DrawDots', theWindow, [x y]', 18, red, [0 0], 1);  % Feedback
         Screen('Flip',theWindow);
         WaitSecs(0.5);

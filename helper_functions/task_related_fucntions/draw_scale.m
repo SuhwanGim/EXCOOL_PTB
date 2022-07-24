@@ -17,6 +17,11 @@ switch scale
         Screen(theWindow,'DrawText','at all',lb-50,anchor_y2,255);
         Screen(theWindow,'DrawText','Worst',rb-50,anchor_y,255);
         Screen(theWindow,'DrawText','imaginable',rb-50,anchor_y2,255);
+    case 'line2'
+        xy = [lb lb lb rb rb rb; H/2 H/2+scale_H H/2+scale_H/2 H/2+scale_H/2 H/2 H/2+scale_H];
+        Screen(theWindow,'DrawLines', xy, 5, 255);
+        Screen(theWindow,'DrawText',double('동의하지 않음'),lb,anchor_y,255);        
+        Screen(theWindow,'DrawText',double('동의함'),rb,anchor_y2,255);
         % Screen('Flip', theWindow);
     case 'overall_int'
         %xy = [lb lb lb rb rb rb; H/2 H/2+scale_H H/2+scale_H/2 H/2+scale_H/2 H/2 H/2+scale_H];
