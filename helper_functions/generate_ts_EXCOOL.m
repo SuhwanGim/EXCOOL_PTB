@@ -1,85 +1,55 @@
 function ts = generate_ts_EXCOOL()
+% ts = generate_ts_EXCOOL
 
-% ts = generate_ts_SEP
+% Three block desgin
+% A total 4 run 
+% 18 trials per run 
+% 6 trials per block
+
 
 % total run = 6;
 % total trial = 12;
-rng('shuffle');
-
-S1 = [];
-I1 = [];
-R1 = [];
 targeto = [];
 words_val = [];
 rng('shuffle');
 %% EXPERIMENTAL PARAMETER
 % ** Word itself
-T=readtable('data/wordlists/kor_personal.xlsx');
-T2 = vertcat(addvars(T,repmat({'나'},24,1), 'NewVariableNames','Target'), ...
-    addvars(T,repmat({'조세호'},24,1), 'NewVariableNames','Target'),...
-    addvars(T,repmat({'친구'},24,1),'NewVariableNames','Target'));
-% randomization
-for run_i = 1:6
-    % ** Target
-    % 1: self
-    % 2: friend
-    % 3: celebrities
-    tar_cond = [1 2 3];
-    temp_tar = [];
-    
-    for tar_i = 1:4
-        rnNB = randperm(3);
-        temp_tar{tar_i}= tar_cond(rnNB);
-    end
-    targeto{run_i} = cell2mat(temp_tar);
-    
-    % ** Valence (word)
-    % -1: Negative
-    % +1: Positive
-    temp_val = [];
-    tar_val = [-1 +1];
-    for tar_i = 1:6
-        rnNB = randperm(2);
-        temp_val{tar_i}= tar_val(rnNB);
-    end
-    words_val{run_i} = cell2mat(temp_val);
-    
-    
-    T.WID(T.positive == words_val{run_i})
-    
+block_all= []; 
+T1pos = []; 
+T1neg = []; 
+T1=readtable('data/wordlists/kor_personal.xlsx');
+
+pos1 = T1.WID(find(T1.positive==+1));
+neg1 = T1.WID(find(T1.positive==-1));
+
+for i =1:3
+    T1pos{i} = pos1(randperm(12));
+    T1neg{i} = neg1(randperm(12));
+end
+
+WID=1:24;    
+trial_idx = [1:3; 4:6; 7:9; 10:12];
+% BLOCK DESGIN 
+for run_i=1:4    
+    rnNB = randperm(3);
+    target_all{run_i} = [repmat(rnNB(1),6,1);repmat(rnNB(2),6,1);repmat(rnNB(3),6,1)]';
+    WID_ALL{run_i} = [T1neg{rnNB(1)}(trial_idx(run_i,:))' T1pos{rnNB(1)}(trial_idx(run_i,:))' ...
+        T1neg{rnNB(2)}(trial_idx(run_i,:))' T1pos{rnNB(2)}(trial_idx(run_i,:))' ...
+        T1neg{rnNB(3)}(trial_idx(run_i,:))' T1pos{rnNB(3)}(trial_idx(run_i,:))'];
     
     % ** ITI and ISI
-    temp_iti = repmat({[4 4], [3 5], [5 3]},1,4); % ISI    
-    rnNB = randperm(12);
-    I1{run_i} = temp_iti(rnNB);
-    
+    temp_iti = repmat({[4 4], [3 5], [5 3]},1,6); % ISI    
+    rnNB = randperm(18);
+    ITI{run_i} = temp_iti(rnNB);
 end
 
-
-%% ISI ITI
-temp_int = [];
+%% save ts
 ts = [];
-ts.cond_type = condname;
+ts.table = T1; 
+ts.target = target_all;
+ts.WID = WID_ALL; % word ID 
 ts.time_generated = datestr(clock, 0);
-ts.target = targeto;
-ts.words_val = words_val;
-
-for run_i = 1:6
-    
-    % for each trial
-    for trial_i = 1:16
-        ts.t{run_i}{trial_i}.stimlv = S1{run_i}(trial_i);
-        
-        ts.t{run_i}{trial_i}.ITI = I1{run_i}{trial_i}{1};
-        ts.t{run_i}{trial_i}.ISI1 = I1{run_i}{trial_i}{2};
-        ts.t{run_i}{trial_i}.ISI2 = I1{run_i}{trial_i}{3};
-        
-        
-        ts.t{run_i}{trial_i}.rating1 = R1{run_i}{trial_i}{1};
-        ts.t{run_i}{trial_i}.rating2 = R1{run_i}{trial_i}{2};
-        
-        
-    end
-end
+ts.ITI = ITI;
+ts.descrip = {'4RUNS, 18TRIALS'};
 
 disp('Trial sequences is generated');

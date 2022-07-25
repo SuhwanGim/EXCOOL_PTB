@@ -182,8 +182,12 @@ try
     %                   TRIAL START
     % ========================================================== %
     dat.RunStartTime = GetSecs;
-    for trial_i = start_trial:12 % length(ts.t{1})        
+    for trial_i = start_trial:18 % length(ts.t{1})        
         
+        % Parse target and words
+        target_conds=ts.target{runNumber}(trial_i);
+        wordst = ts.table.word(ts.WID{runNumber}(trial_i));
+        valence = ts.table.positive(ts.WID{runNumber}(trial_i));
         % Trial begins
         trial_t = GetSecs;
         dat.dat{trial_i}.TrialStartTimestamp = trial_t;
@@ -193,7 +197,7 @@ try
         DrawFormattedText(theWindow, double('+'), 'center', 'center', white, [], [], [], 1.2); % as exactly same as function fixPoint(trial_t, ttp , white, '+') % ITI
         Screen('Flip', theWindow);        
         %-------------------------------------------------
-        waitsec_fromstarttime(trial_t, ts.t{runNumber}{trial_i}.ITI);
+        waitsec_fromstarttime(trial_t, ts.ITI{runNumber}{trial_i}(1));
         dat.dat{trial_i}.ITI_EndTime = GetSecs;
         
                 
@@ -202,25 +206,28 @@ try
         % --------------------------------------------------------- %
         % black screen
         Screen('Flip',theWindow); % black screen
-        show_cues(target,words)
-        waitsec_fromstarttime(trial_t, ts.t{runNumber}{trial_i}.ITI + 3); % From start + ITI + thermal (3 sec)
+        show_cues(target,wordst)
+        waitsec_fromstarttime(trial_t, ts.ITI{runNumber}{trial_i}(1) + 3); % From start + ITI + thermal (3 sec)
         
         
         % --------------------------------------------------------- %
-        %         3. ISI1
+        %         3. ISI
         % --------------------------------------------------------- %
         ttp = []; % total
-        ttp = ts.t{runNumber}{trial_i}.ITI + 3 + ts.t{runNumber}{trial_i}.ISI1;
+        ttp = ts.ITI{runNumber}{trial_i}(1) + 3 + ts.ITI{runNumber}{trial_i}(2);
         fixPoint(trial_t, ttp , white, '+') % ITI
-        dat.dat{trial_i}.ISI1_EndTime=GetSecs;
+        dat.dat{trial_i}.ISI_EndTime=GetSecs;
         
         % --------------------------------------------------------- %
         %         4. Trait and ratings (7secs) 
         % --------------------------------------------------------- %
         ttp = ttp + 7;
-        temp_ratings = [];
-        temp_ratings = get_ratings(target,words, ttp, trial_t);
+        temp_ratings = [];        
+        temp_ratings = get_ratings(target, wordst, ttp, trial_t);
         
+        dat.dat{trial_i}.target = target;
+        dat.dat{trial_i}.WID = WID; % wordID
+        dat.dat{trial_i}.valence = valence; % valence (+1: positive; -1: negative)
         dat.dat{trial_i}.ratings_end_timestamp = GetSecs;
         dat.dat{trial_i}.ratings_con_time_fromstart = temp_ratings.con_time_fromstart;
         dat.dat{trial_i}.ratings_con_xy = temp_ratings.con_xy;
@@ -354,7 +361,7 @@ while GetSecs - start_t < total_secs
         WaitSecs(min(0.5, 5-(GetSecs-start_while)));
         ready3=0;
         while ~ready3 %GetSecs - sTime> 5            
-            if  GetSecs - start_while > 5
+            if  GetSecs - start_while > 1
                 break
             end
         end
@@ -374,7 +381,7 @@ function show_cues(target,words)
     global cir_center
     global fontsize
     
-    msgg = double(sprintf('나는 <color=e34a33><b>%s<color=ffffff>를\n <color=505050><size=%d><u><b> %s\n',double(target),fontsize.*2.4),double(words));
+    msgg = double(sprintf('나는 <color=e34a33><b>%s<color=ffffff>를\n <color=ffffff><size=%d><u><b> %s\n',double(target),fontsize.*2.4),double(words));
     DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) msgg],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
 	DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) double('라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');    
     Screen('Flip', theWindow);

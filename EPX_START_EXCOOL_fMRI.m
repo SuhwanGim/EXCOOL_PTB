@@ -13,21 +13,30 @@ opts.testmode = 1;    % do test mode (not full screens)
 
 opts.kbd = 1;         % 0: own keyboard
                       % 1: external button-box
-                      % 2. external wheel                      
+                      % 2. external wheel
+
+ts = generate_ts_EXCOOL();
+ts.target_names = ['나','친구','연예인']; 
+ts.opts = opts;
 %% SETUP: Subj Information 
-SID.date = date;
-SID.ExpID = '';           % ID for fMRI exp participants
+SID.ExpID = 'ttteeee';           % ID for fMRI exp participants
 %% START 
 % RUN1 : RESTING-STATE (10mins)
 resting_state(SID, 1, opts);
-
 %% RUN2 : RESTING-STATE (10mins)
 resting_state(SID, 2, opts);
 
-%% TASK1 : RESTING-STATE (10mins)
-fMRI_task(SID, 1, opts);
+%% TASK1 
+fMRI_task(SID, ts, 1, opts);
 
-%% TASK2 : RESTING-STATE (10mins)
-fMRI_task(SID, 2, opts);
+%% TASK2 
+fMRI_task(SID, st, 2, opts);
+
+%% TASK3
+fMRI_task(SID, st, 3, opts);
+
+%% TASK4 
+fMRI_task(SID, st, 4, opts);
+
 
 %% Structural imaging (10mins)

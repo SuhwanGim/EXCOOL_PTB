@@ -44,6 +44,8 @@ global fontsize;                                  % fontsize
 global anchor_y anchor_y2 anchor anchor_xl anchor_xr anchor_yu anchor_yd anchor_lms anchor_lms_y anchor_lms_x; % anchors
 global cir_center
 %global Participant; % response box
+
+
 %% SETUP: DATA and Subject INFO
 savedir = fullfile(pwd,'data');
 % subfunction %start_trial
@@ -175,13 +177,13 @@ try
         Screen('Flip', theWindow);
         waitsec_fromstarttime(fmri_t, dat.disdaq_sec); % ADJUST THIS + 8 secs for stable modeling 
     end 
-    
+   
     %% ========================================================= %
     %                   TRIAL START
     % ========================================================== %
     dat.RunStartTime = GetSecs;
-    for trial_i = start_trial:16 % length(ts.t{1})        
-            
+    for trial_i = start_trial:18 % length(ts.t{1})        
+        
         % Trial begins
         trial_t = GetSecs;
         dat.dat{trial_i}.TrialStartTimestamp = trial_t;
@@ -191,18 +193,17 @@ try
         DrawFormattedText(theWindow, double('+'), 'center', 'center', white, [], [], [], 1.2); % as exactly same as function fixPoint(trial_t, ttp , white, '+') % ITI
         Screen('Flip', theWindow);        
         %-------------------------------------------------
-        waitsec_fromstarttime(trial_t, ts.t{runNumber}{trial_i}.ITI);
+        waitsec_fromstarttime(trial_t, ts.ITI{runNumber}{trial_i}(1));
         dat.dat{trial_i}.ITI_EndTime = GetSecs;
         
-        
-        
+                
         % --------------------------------------------------------- %
         %         2. Target cue (3secs)
         % --------------------------------------------------------- %
         % black screen
         Screen('Flip',theWindow); % black screen
         show_cues(target,words)
-        waitsec_fromstarttime(trial_t, ts.t{runNumber}{trial_i}.ITI + 3); % From start + ITI + thermal (3 sec)
+        waitsec_fromstarttime(trial_t, ts.ITI{runNumber}{trial_i}.ITI + 3); % From start + ITI + thermal (3 sec)
         
         
         % --------------------------------------------------------- %
@@ -220,27 +221,12 @@ try
         temp_ratings = [];
         temp_ratings = get_ratings(target,words, ttp, trial_t);
         
-        % --------------------------------------------------------- %
-        %         5. ISI2
-        % --------------------------------------------------------- %
-        ttp = ttp + ts.t{runNumber}{trial_i}.ISI2;
-        fixPoint(trial_t, ttp , white, '+') % ISI2
-        dat.dat{trial_i}.ISI2_EndTime=GetSecs;
-        
-        % --------------------------------------------------------- %
-        %         6. Ratings 
-        % --------------------------------------------------------- %
-        
-        ttp = ttp + 5;
-        temp_ratings = [];
-        temp_ratings = get_ratings( ttp, trial_t); % get_ratings(rating_type, total_secs, start_t )
-        
         dat.dat{trial_i}.ratings_end_timestamp = GetSecs;
         dat.dat{trial_i}.ratings_con_time_fromstart = temp_ratings.con_time_fromstart;
         dat.dat{trial_i}.ratings_con_xy = temp_ratings.con_xy;
         dat.dat{trial_i}.ratings_con_clicks = temp_ratings.con_clicks;
         dat.dat{trial_i}.norms_ratings = temp_ratings.norms_ratings;
-        
+                    
                 
         % ------------------------------------ %
         %  End of trial (save data)

@@ -1,20 +1,52 @@
 function ts = generate_ts_EXCOOL()
+% ts = generate_ts_EXCOOL
 
-% ts = generate_ts_SEP
+% Three block desgin
+% A total 4 run 
+% 18 trials per run 
+% 6 trials per block
+
 
 % total run = 6;
 % total trial = 12;
-rng('shuffle');
-
-S1 = [];
-I1 = [];
-R1 = [];
 targeto = [];
 words_val = [];
 rng('shuffle');
 %% EXPERIMENTAL PARAMETER
 % ** Word itself
-    T=readtable('data/wordlists/kor_personal.xlsx');
+block_all= []; 
+T1=readtable('data/wordlists/kor_personal.xlsx');
+
+pos1 = T1.WID(find(T1.positive==+1));
+neg1 = T1.WID(find(T1.positive==-1));
+
+% WID
+T1pos = pos1(randperm(12));
+T1neg = neg1(randperm(12));
+
+T2pos = pos1(randperm(12));
+T2neg = neg1(randperm(12));
+
+T3pos = pos1(randperm(12));
+T3neg = neg1(randperm(12));
+
+WID=1:24;    
+trial_idx = [1:3; 4:6; 7:9; 10:12];
+% BLOCK DESGIN 
+for run_i=1:4    
+    rnNB = randperm(3);
+    target_all{run_i} = [repmat(rnNB(1),6,1);repmat(rnNB(2),6,1);repmat(rnNB(3),6,1)];
+    WID_ALL{[T1neg(trial_idx(run_i,:))' T1pos(trial_idx(run_i,:))'];
+    
+    block_all{run_i} = Blocknames(rnNB);
+    for block_i=1:3
+        T1pos(1:3)
+        
+    end
+end        
+    
+    
+
 % randomization
 for run_i = 1:6
     % ** Target
