@@ -16,15 +16,15 @@ opts.kbd = 1;         % 0: own keyboard
                       % 2. external wheel
 
 ts = generate_ts_EXCOOL();
-ts.target_names = {'나','친구','연예인'}; 
+ts.target_names = {'나','김덕배','서강준'}; 
 ts.opts = opts;
 %% SETUP: Subj Information 
 SID.ExpID = 'ttteeee';           % ID for fMRI exp participants
 %% START 
 % RUN1 : RESTING-STATE (10mins)
 resting_state(SID, 1, opts);
-%% RUN2 : RESTING-STATE (10mins)
-resting_state(SID, 2, opts);
+% %% RUN2 : RESTING-STATE (10mins)
+% resting_state(SID, 2, opts);
 
 %% TASK1 
 fMRI_task(SID, ts, 1, opts);

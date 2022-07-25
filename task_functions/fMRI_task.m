@@ -1,4 +1,4 @@
-function fMRI_task(SID, ts, runNumber, opts)
+function fMRI_task(SID, ts, runNumber, opts,varargin)
 %
 %  :: WORKING ON::
 %       : Suhwan Gim (suhwan.gim.psych@gmail.com)
@@ -8,7 +8,7 @@ function fMRI_task(SID, ts, runNumber, opts)
 %       - This function is for running experimental paradigm for Suhwan's
 %       project (disdaq = 10 secs).
 %
-%       1) See something 
+%       1) See something
 %       2) rating
 %
 %   :: Requirements for this experiments and fucntions ::
@@ -31,10 +31,26 @@ function fMRI_task(SID, ts, runNumber, opts)
 % if (~isfield(opts,'dofmri')) | (~isfield(opts,'doBiopac'))  | (~isfield(opts,'testmode'))
 %     error('Check options');
 % end
+clear theWindow;
+Screen('Clear');
+Screen('CloseAll');
 %% SETUP: OPTIONS
 testmode = opts.testmode;
 dofmri = opts.dofmri;
 start_trial = 1;
+iscomp = 3; %macbook
+for i = 1:length(varargin)
+    if ischar(varargin{i})
+        switch varargin{i}         
+            case {'macbook'}
+                iscomp = 3;
+            case {'imac'}
+                iscomp = 1;
+            case {'button_box'}            
+           
+        end
+    end
+end
 %% SETUP: GLOBAL variables
 global theWindow W H window_num;                  % window screen property
 global white red red_Alpha orange bgcolor yellow; % set color
@@ -65,6 +81,37 @@ else
     dat.run_umber = runNumber;
     dat.ts = ts; % trial sequences (predefiend)
     save(dat.datafile,'dat');
+end
+%% SETUP: External device name for matching
+%===== Experimenter
+iscomp = 3;
+if iscomp == 1
+    device(1).product = 'Apple Keyboard';   % imac scanner (full keyboard)
+    device(1).vendorID= 1452;
+elseif iscomp == 2
+    device(1).product = 'Magic Keyboard';   % imac vcnl (short keyboard)
+    device(1).vendorID= 1452;
+elseif iscomp == 3
+    device(1).product = 'Apple Internal Keyboard / Trackpad';   % macbook
+    device(1).vendorID= 1452;
+elseif iscomp == 4
+    device(1).product = 'Magic Keyboard';         % my pc
+    device(1).vendorID = 1452;
+end
+experimenter = IDkeyboards(device(1));
+if dofmri
+    % ===== Participant's button box
+    % "HID KEY 12345"
+    device(2).product = '932';
+    device(2).vendorID= [1240 6171];
+    
+    Participant  = IDkeyboards(device(2));
+    
+    
+    % ===== Scanner trigger
+    device(3).product = 'KeyWarrior8 Flex';
+    device(3).vendorID= 1984;
+    scanner = IDkeyboards(device(3));    
 end
 %% SETUP: Screen size
 Screen('Clear');
@@ -124,11 +171,12 @@ Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');                  % text
 Screen('BlendFunction', theWindow, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); % For using transparent color e.g., alpha value of [R G B alpha]
 Screen('TextSize', theWindow, fontsize);
 Screen('TextFont', theWindow, font); % setting font
+Screen('Preference','TextRenderer',1);
 %% START: SCREEN FOR PARTICIPANTS
 try
     %% PREP: INSTRUCTION before task
     while (1)
-        [~,~,keyCode] = KbCheck;
+        [~,~,keyCode] = KbCheck();
         if keyCode(KbName('space'))==1
             break
         elseif keyCode(KbName('q'))==1
@@ -142,7 +190,7 @@ try
         % but if behavioral, it will start with "r" key.
         
         if dofmri
-            [~,~,keyCode] = KbCheck; % experiment
+            [~,~,keyCode] = KbCheck(scanner); % experiment
             if keyCode(KbName('s'))==1 % get 's' from a sync box
                 break
             elseif keyCode(KbName('q'))==1
@@ -160,34 +208,35 @@ try
     end
     
     
-    %% PREP: do fMRI (disdaq_sec = about 10 secs) and 
+    %% PREP: do fMRI (disdaq_sec = about 10 secs) and
     if dofmri
         dat.disdaq_sec = 18 ; % 10 TRs
         fmri_t = GetSecs;
         % gap between 5 key push and the first stimuli (disdaqs: dat.disdaq_sec)
         %Screen(theWindow, 'FillRect', bgcolor, window_rect);
-        %DrawFormattedText(theWindow, double('시작합니다...'), 'center', 'center', white, [], [], [], 1.2); % 4 seconds               
-    end            
-    display_expmessage('시작합니다... ');    
-    %% PREP: Wait 10 secs more 
+        %DrawFormattedText(theWindow, double('시작합니다...'), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
+    end
+    display_expmessage('시작합니다... ');
+    %% PREP: Wait 10 secs more
     if dofmri
         dat.runscan_starttime = GetSecs;
-        waitsec_fromstarttime(fmri_t, 4);        
-        % 4 seconds: Blank        
+        waitsec_fromstarttime(fmri_t, 4);
+        % 4 seconds: Blank
         Screen('Flip', theWindow);
-        waitsec_fromstarttime(fmri_t, dat.disdaq_sec); % ADJUST THIS + 8 secs for stable modeling 
-    end 
-   
+        waitsec_fromstarttime(fmri_t, dat.disdaq_sec); % ADJUST THIS + 8 secs for stable modeling
+    end
+    
     %% ========================================================= %
     %                   TRIAL START
     % ========================================================== %
     dat.RunStartTime = GetSecs;
-    for trial_i = start_trial:18 % length(ts.t{1})        
+    for trial_i = start_trial:18 % length(ts.t{1})
         
         % Parse target and words
         target_conds=ts.target_names{ts.target{runNumber}(trial_i)};
-        wordst = ts.table.word(ts.WID{runNumber}(trial_i));
+        wordst = ts.table.word{ts.WID{runNumber}(trial_i)};
         valence = ts.table.positive(ts.WID{runNumber}(trial_i));
+                
         % Trial begins
         trial_t = GetSecs;
         dat.dat{trial_i}.TrialStartTimestamp = trial_t;
@@ -195,18 +244,18 @@ try
         %         1. ITI (fixPoint)
         % --------------------------------------------------------- %
         DrawFormattedText(theWindow, double('+'), 'center', 'center', white, [], [], [], 1.2); % as exactly same as function fixPoint(trial_t, ttp , white, '+') % ITI
-        Screen('Flip', theWindow);        
+        Screen('Flip', theWindow);
         %-------------------------------------------------
         waitsec_fromstarttime(trial_t, ts.ITI{runNumber}{trial_i}(1));
         dat.dat{trial_i}.ITI_EndTime = GetSecs;
         
-                
+        
         % --------------------------------------------------------- %
         %         2. Target cue (3secs)
         % --------------------------------------------------------- %
         % black screen
         Screen('Flip',theWindow); % black screen
-        show_cues(target_conds,wordst)
+        show_cues(double(target_conds),double(wordst))
         waitsec_fromstarttime(trial_t, ts.ITI{runNumber}{trial_i}(1) + 3); % From start + ITI + thermal (3 sec)
         
         
@@ -219,22 +268,23 @@ try
         dat.dat{trial_i}.ISI_EndTime=GetSecs;
         
         % --------------------------------------------------------- %
-        %         4. Trait and ratings (7secs) 
+        %         4. Trait and ratings (7secs)
         % --------------------------------------------------------- %
         ttp = ttp + 7;
-        temp_ratings = [];        
+        temp_ratings = [];
         temp_ratings = get_ratings(target_conds, wordst, ttp, trial_t);
         
-        dat.dat{trial_i}.target = target;
-        dat.dat{trial_i}.WID = WID; % wordID
+        dat.dat{trial_i}.target = target_conds;
+        dat.dat{trial_i}.WID = ts.WID{runNumber}(trial_i); % wordID
+        dat.dat{trial_i}.words = wordst;%
         dat.dat{trial_i}.valence = valence; % valence (+1: positive; -1: negative)
         dat.dat{trial_i}.ratings_end_timestamp = GetSecs;
         dat.dat{trial_i}.ratings_con_time_fromstart = temp_ratings.con_time_fromstart;
         dat.dat{trial_i}.ratings_con_xy = temp_ratings.con_xy;
         dat.dat{trial_i}.ratings_con_clicks = temp_ratings.con_clicks;
         dat.dat{trial_i}.norms_ratings = temp_ratings.norms_ratings;
-                    
-                
+        
+        
         % ------------------------------------ %
         %  End of trial (save data)
         % ------------------------------------ %
@@ -252,9 +302,9 @@ try
     waitsec_fromstarttime(dat.RunEndTime, 10);
     save(dat.datafile, '-append', 'dat');
     waitsec_fromstarttime(GetSecs, 2);
-    %% END MESSAGE    
-    str = '잠시만 기다려주세요 (space)';    
-    display_expmessage(str);    
+    %% END MESSAGE
+    str = '잠시만 기다려주세요 (space)';
+    display_expmessage(str);
     while (1)
         [~,~,keyCode] = KbCheck;
         if keyCode(KbName('q'))==1
@@ -262,12 +312,12 @@ try
         elseif keyCode(KbName('space'))== 1
             break
         end
-    end        
+    end
     ShowCursor();
-    Screen('Clear');    
+    Screen('Clear');
     Screen('CloseAll');
 catch err
-    % print ERROR   
+    % print ERROR
     disp(err);
     ShowCursor();
     for i = 1:numel(err.stack)
@@ -309,7 +359,7 @@ end
 %           TASK                              %
 %  ------------------------------------------ %
 
-function temp_ratings = get_ratings(target,words, total_secs, start_t,varargin)
+function temp_ratings = get_ratings(target_conds,wordst, total_secs, start_t,varargin)
 
 global theWindow W H window_num;                  % window screen property
 global white red red_Alpha orange bgcolor yellow; % set color
@@ -335,32 +385,32 @@ while GetSecs - start_t < total_secs
     if  x>rb
         x = rb;
         SetMouse(x,y);
-    end    
-    xloc = num2str((x-lb)./(rb-lb)); % nomalized ratings (from zero to 1) 
-            
-    msgg = double(sprintf('나는 <color=e34a33><b>%s<color=ffffff>를\n <color=505050><size=%d><u><b> %s\n',double(target),fontsize.*2.4),double(words));
-	DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) msgg],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
-	DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) double('라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');    
+    end
+    xloc = (x-lb)./(rb-lb); % nomalized ratings (from zero to 1)
+    
+    msgg = double(sprintf('나는 <color=e34a33><b>%s<color=ffffff>를\n <color=ffffff><size=%d><u><b> %s\n',double(target_conds),floor(fontsize.*2.4),double(wordst)));
+    DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',floor(fontsize.*1.4))) msgg],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
+    DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',floor(fontsize.*1.4))) double('사람이라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
     draw_scale('line2');
     Screen('DrawDots', theWindow, [x y], 15, orange, [0 0], 1);
     Screen('Flip', theWindow);
     
-    % recording    
+    % recording
     temp_ratings.con_time_fromstart(rec_i,1) = GetSecs-start_while;
     temp_ratings.norms_ratings(rec_i,1) = xloc;
     temp_ratings.con_xy(rec_i,:) = [x-cir_center(1) cir_center(2)-y];
-    temp_ratings.con_clicks(rec_i,:) = button;        
+    temp_ratings.con_clicks(rec_i,:) = button;
     
     if button(1)
-        msgg = double(sprintf('나는 <color=e34a33><b>%s<color=ffffff>를\n <color=505050><size=%d><u><b> %s\n',double(target),fontsize.*2.4),double(words));
-        DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) msgg],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
-        DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) double('라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');    
+        msgg = double(sprintf('나는 <color=e34a33><b>%s<color=ffffff>를\n <color=ffffff><size=%d><u><b> %s\n',double(target_conds),floor(fontsize.*2.4),double(wordst)));
+        DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',floor(fontsize.*1.4))) msgg],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
+        DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',floor(fontsize.*1.4))) double('사람이라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
         draw_scale('line2');
         Screen('DrawDots', theWindow, [x y]', 18, red, [0 0], 1);  % Feedback
         Screen('Flip',theWindow);
         WaitSecs(min(0.5, 5-(GetSecs-start_while)));
         ready3=0;
-        while ~ready3 %GetSecs - sTime> 5            
+        while ~ready3 %GetSecs - sTime> 5
             if  GetSecs - start_while > 1
                 break
             end
@@ -372,21 +422,21 @@ while GetSecs - start_t < total_secs
     
 end
 
-function show_cues(target,words)
-    
-    global theWindow W H window_num;                  % window screen property
-    global white red red_Alpha orange bgcolor yellow; % set color
-    global window_rect lb rb tb bb scale_H            % scale size parameter
-    global lb1 rb1 lb2 rb2;
-    global cir_center
-    global fontsize
-    
-    msgg = double(sprintf('나는 <color=e34a33><b>%s<color=ffffff>를\n <color=ffffff><size=%d><u><b> %s\n',double(target),fontsize.*2.4),double(words));
-    DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) msgg],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
-	DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) double('라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');    
-    Screen('Flip', theWindow);
-    %waitsec_fromstarttime(start_t,total_secs);
 end
-    
 
+
+function show_cues(target_conds,wordst)
+
+global theWindow W H; % window property
+global white red orange bgcolor; % color
+global window_rect prompt_ex lb rb lb1 rb1 lb2 rb2 tb bb scale_H promptW promptH; % rating scale
+global fontsize anchor_y anchor_y2 anchor anchor_xl anchor_xr anchor_yu anchor_yd anchor_lms anchor_lms_y anchor_lms_x; % anchors
+
+msgg = double(sprintf('나는 <color=e34a33><b>%s<color=ffffff>를\n <color=ffffff><size=%d><u><b> %s\n',double(target_conds), floor(fontsize.*2.4), double(wordst)));
+DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',floor(fontsize.*1.4))) msgg],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
+DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',floor(fontsize.*1.4))) double('사람이라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
+Screen('Flip', theWindow);
+%waitsec_fromstarttime(start_t,total_secs);
 end
+
+

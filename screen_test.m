@@ -67,7 +67,7 @@ anchor_y = H/2+10+scale_H;
 lb = 5*W/18;            % left bound
 rb = 13*W/18;           % right bound
 
-% For cont rating scale 
+% For cont rating scale
 lb1 = 1*W/18; %
 rb1 = 17*W/18; %
 
@@ -109,68 +109,94 @@ Screen('Preference','TextRenderer',1);
 sTime = GetSecs;
 ready2=0;
 rec=0;
-display_expmessage('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac,trigger, USB, etc). \n 모두 준비되었으면 SPACE BAR를 눌러주세요.'); % until space; see subfunctions
+% 
+% device(1).product = 'Apple Internal Keyboard / Trackpad';   % macbook
+% device(1).vendorID= 1452;
+% experimenter = IDkeyboards(device(1));    
+% while (1)
+%     [~,~,keyCode] = KbCheck();
+%     if keyCode(KbName('space'))==1
+%         break
+%     elseif keyCode(KbName('q'))==1
+%         abort_experiment;
+%     end
+%     display_expmessage('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac,trigger, USB, etc). \n 모두 준비되었으면 실험자는 SPACE BAR를 눌러주세요.'); % until space; see subfunctions
+% end
 %radius = (rb-lb)/2; % radius
 radius = ((12*W/18)-(6*W/18))/2; % radius
 cir_center = [(lb1+rb1)/2 H*3/4+100];
 SetMouse(cir_center(1), cir_center(2)); % set mouse at the center
 xc = [];
-yc = []; 
+yc = [];
 %
 WaitSecs(0.5);
+ts = generate_ts_EXCOOL();
 while ~ready2
     %display_expmessage('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac,trigger, USB, etc). \n 모두 준비되었으면 SPACE BAR를 눌러주세요.'); % until space; see subfunctions
     rec=rec+1;
     [x,~,button] = GetMouse(theWindow);
     y = H/2+scale_H/2;%bb;
     
-    xc=x; 
+    xc=x;
     yc=y;
     
     rating_type = 'semicircular';
     %draw_scale('overall_motor_semicircular');
     %draw_scale('overall_predict_semicircular_SEP');
     draw_scale('line2');
-    Screen('DrawDots', theWindow, [x y]', 20, [255 164 0 130], [0 0], 1);  %dif color    
-       
+    Screen('DrawDots', theWindow, [x y]', 20, [255 164 0 130], [0 0], 1);  %dif color
+    
     % send to arc of semi-circle
-    if x<lb 
+    if x<lb
         x = lb;
-        SetMouse(x,y); 
+        SetMouse(x,y);
     end
     
     if  x>rb
         x = rb;
-        SetMouse(x,y); 
+        SetMouse(x,y);
     end
     
     
- 
     
     
-    %draw_scale('overall_motor_semicircular');    
     
-    xloc = num2str((x-lb)./(rb-lb));
-%     %DrawFormattedText(theWindow, theta, 'center', 'center', white, [], [], [], 1.2); %Display the degree of the cursur based on cir_center
-%     DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize)) xloc],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
-%     y = double('실험자 저는 김수환입니다');    
-%     DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) y],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/4,'xalign','center','yalign','center');
-    msgy1 = double(sprintf('나는 <color=e34a33><b>%s<color=e34a33>를\n <color=ffffff><size=%d><u><b> 다정하다고\n',double('친구'),fontsize.*2.4));
-    msgy2 = double(sprintf('나는 <color=e34a33><b>%s<color=e34a33>를\n <color=505050><size=%d><u><b> 다정하다고\n',double('친구'),fontsize.*2.4));
-    if x < (window_rect(1) + window_rect(3))/2
-        msgy = msgy1;
-    else
-        msgy = msgy2;
-    end
-    DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) msgy],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
-	DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) double('라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
-    %[~,~,bbox,cache,wbounds]=DrawFormattedText2('<font=Courier New><size=27>test\n<font=Times New Roman>scr<font><font>een<font> is\n<b><size=50>UGLY\n<size=12><b><u><i>Isn''t it?','win',theWindow,'sx','center','sy','center','xalign','center','yalign','center');
-    %Screen('FrameRect', theWindow, [255 0 0 100], bbox)ㅊ
-
-    %disp(theta); %angle
-    Screen('DrawDots', theWindow, [xc yc]', 5, yellow, [0 0], 1);  %dif color
-    %Screen(theWindow,'DrawLines', [xc yc]', 5, 255);
-    Screen('Flip',theWindow);
+    %draw_scale('overall_motor_semicircular');
+    
+%     xloc = num2str((x-lb)./(rb-lb));
+%         %DrawFormattedText(theWindow, theta, 'center', 'center', white, [], [], [], 1.2); %Display the degree of the cursur based on cir_center
+%         %DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize)) xloc],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
+%         %y = double('실험자 저는 김수환입니다');
+%         %DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) y],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/4,'xalign','center','yalign','center');
+%     msgy1 = double(sprintf('나는 <color=e34a33><b>%s<color=e34a33>를\n <color=ffffff><size=%d><u><b> 다정하다고\n',double('친구'),fontsize.*2.4));
+%     msgy2 = double(sprintf('나는 <color=e34a33><b>%s<color=e34a33>를\n <color=505050><size=%d><u><b> 다정하다고\n',double('친구'),fontsize.*2.4));
+%     if x < (window_rect(1) + window_rect(3))/2
+%         msgy = msgy1;
+%     else
+%         msgy = msgy2;
+%     end
+%     msgg = double(sprintf('나는 <color=e34a33><b>%s<color=ffffff>를\n <color=ffffff><size=%d><u><b> %s\n',double('친구'),fontsize.*2.4,double('다정한')));
+%     DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) msgg],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
+%     DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) double('라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
+%     %[~,~,bbox,cache,wbounds]=DrawFormattedText2('<font=Courier New><size=27>test\n<font=Times New Roman>scr<font><font>een<font> is\n<b><size=50>UGLY\n<size=12><b><u><i>Isn''t it?','win',theWindow,'sx','center','sy','center','xalign','center','yalign','center');
+%     %Screen('FrameRect', theWindow, [255 0 0 100], bbox)ㅊ
+%     
+%     
+%     %disp(theta); %angle
+%     Screen('DrawDots', theWindow, [xc yc]', 5, yellow, [0 0], 1);  %dif color
+%     %Screen(theWindow,'DrawLines', [xc yc]', 5, 255);
+%     Screen('Flip',theWindow);
+    
+    ts.target_names = {'나','친구','연예인'}; 
+    target_conds=ts.target_names{ts.target{1}(1)};
+	wordst = ts.table.word{ts.WID{1}(1)};
+    valence = ts.table.positive(ts.WID{1}(1));
+        
+        
+    msgg = double(sprintf('나는 <color=e34a33><b>%s<color=ffffff>를\n <color=ffffff><size=%d><u><b> %s\n',double(target_conds),fontsize.*2.4,double(wordst)));
+    DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) msgg],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
+    DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) double('라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
+    Screen('Flip', theWindow);
     if button(1)
         draw_scale('line2');
         Screen('DrawDots', theWindow, [x y]', 18, red, [0 0], 1);  % Feedback
@@ -199,3 +225,24 @@ end
 
 sca;
 Screen('CloseAll');
+%%
+device(3).product = 'KeyWarrior8 Flex';
+device(3).vendorID= 1984;
+scanner = IDkeyboards(device(3));
+
+%%
+device(1).product = 'Apple Internal Keyboard / Trackpad';   % macbook
+device(1).vendorID= 1452;
+macbook= IDkeyboards(device(1));
+%%
+
+while (1)
+    [~,~,keyCode] = KbCheck(macbook);
+    if keyCode(KbName('s'))==1
+        break
+    elseif keyCode(KbName('q'))==1
+        abort_experiment;
+    end
+    
+end
+disp('done');
