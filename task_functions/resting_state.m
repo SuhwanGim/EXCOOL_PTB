@@ -1,5 +1,5 @@
 function resting_state(SID, runNumber, opts)
-%% Movie watching in a scanner without ratings 
+%% Movie watching in a scanner without ratings
 
 %% Which movie?
 
@@ -22,15 +22,15 @@ savedir = fullfile(pwd,'data');
 fname = subjectinfo_check_EXOOL(SID.ExpID, savedir, runNumber, 'resting');
 if exist(fname, 'file')
     % load previous dat files
-    load(fname);    
+    load(fname);
 else
     % generate and save data
     dat.ver= 'EXCOOL_Ver1_July-23-2022_Suhwan';
     dat.subjects = SID;     % subject name
     dat.datafile = fname;  % filename
     dat.starttime = datestr(clock, 0); % date-time
-    dat.starttime_getsecs = GetSecs; % in the same format of timestamps for each trial    
-    dat.runNumber = runNumber;     
+    dat.starttime_getsecs = GetSecs; % in the same format of timestamps for each trial
+    dat.runNumber = runNumber;
     save(dat.datafile,'dat');
 end
 %% SETUP: Screen size
@@ -111,8 +111,8 @@ try
         fmri_t = GetSecs;
         % gap between 5 key push and the first stimuli (disdaqs: dat.disdaq_sec)
         display_expmessage('시작합니다...');
-%         Screen(theWindow, 'FillRect', bgcolor, window_rect);
-%         DrawFormattedText(theWindow, double('시작합니다...'), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
+        %         Screen(theWindow, 'FillRect', bgcolor, window_rect);
+        %         DrawFormattedText(theWindow, double('시작합니다...'), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
         Screen('Flip', theWindow);
         dat.runscan_starttime = GetSecs;
         waitsec_fromstarttime(fmri_t, 4);
@@ -127,31 +127,31 @@ try
     %                   START: RESTING
     % ========================================================== %
     t_time = GetSecs;
-    dat.RunStartTime = t_time ;                        
+    dat.RunStartTime = t_time ;
     seconds = 600; % 600 secs without disdaq
     
     %DrawFormattedText(theWindow, double(stimText), 'center', 'center', white, [], [], [], 1.2);
     display_expmessage('+');
     Screen('Flip', theWindow);
     
-    waitsec_fromstarttime(t_time, seconds);           
-    dat.RunEndTime = GetSecs;                           
+    waitsec_fromstarttime(t_time, seconds);
+    dat.RunEndTime = GetSecs;
     %% ========================================================= %
-    %                   START: RATING 
+    %                   START: RATING
     % ========================================================== %
-    Screen('Flip', theWindow);         
+    Screen('Flip', theWindow);
     display_expmessage('');
     waitsec_fromstarttime(dat.RunEndTime, 5);
-    % WHICH RATING SHOULD BE INCLUDED HERE (by Suhwan) 
+    % WHICH RATING SHOULD BE INCLUDED HERE (by Suhwan)
     
     %% ========================================================= %
     %                   FINALZING EXPERIMENT
-    % ========================================================== %            
+    % ========================================================== %
     save(dat.datafile, '-append', 'dat');
     waitsec_fromstarttime(GetSecs, 2);
-    %% END MESSAGE    
+    %% END MESSAGE
     str = '잠시만 기다려주세요 (space)';
-    display_expmessage(str);    
+    display_expmessage(str);
     while (1)
         [~,~,keyCode] = KbCheck;
         if keyCode(KbName('q'))==1
@@ -159,9 +159,9 @@ try
         elseif keyCode(KbName('space'))== 1
             break
         end
-    end     
+    end
     ShowCursor();
-    Screen('Clear');    
+    Screen('Clear');
     Screen('CloseAll');
 catch err
     % ERROR
@@ -172,5 +172,28 @@ catch err
     end
     abort_experiment;
 end
+end
 
-    
+
+function display_runmessage(dofmri)
+
+% MESSAGE FOR EACH RUN
+
+% HERE: YOU CAN ADD MESSAGES FOR EACH RUN USING RUN_NUM and RUN_I
+
+global theWindow white bgcolor window_rect; % rating scale
+global fontsize
+
+if dofmri
+    Run_start_text = double('참가자가 준비되었으면 이미징을 시작합니다 (s).');
+else
+    Run_start_text = double('참가자가 준비되었으면, r을 눌러주세요.');
+end
+msg = Run_start_text;
+% display
+%Screen(theWindow,'FillRect',bgcolor, window_rect);
+%DrawFormattedText(theWindow, Run_start_text, 'center', 'center', white, [], [], [], 1.5);
+DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize)) msg],'win',theWindow,'sx','center','sy','center','xalign','center','yalign','center');
+Screen('Flip', theWindow);
+
+end

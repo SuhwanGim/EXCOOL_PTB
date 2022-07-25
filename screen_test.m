@@ -234,15 +234,21 @@ scanner = IDkeyboards(device(3));
 device(1).product = 'Apple Internal Keyboard / Trackpad';   % macbook
 device(1).vendorID= 1452;
 macbook= IDkeyboards(device(1));
+
+%%
+
+devices = PsychHID('devices');
+scanner = devices(strcmp({devices.product}, 'KeyWarrior8 Flex')).index;
+
 %%
 
 while (1)
-    [~,~,keyCode] = KbCheck(macbook);
+    [~,~,keyCode] = KbCheck(scanner);
     if keyCode(KbName('s'))==1
         break
     elseif keyCode(KbName('q'))==1
         abort_experiment;
     end
-    
+    disp(find(keyCode))
 end
 disp('done');

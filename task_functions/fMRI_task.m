@@ -150,6 +150,10 @@ anchor_y = H/2+10+scale_H;
 lb = 5*W/18;            % left bound
 rb = 13*W/18;           % right bound
 
+
+lb1 = 5*W/18;            % left bound
+rb1 = 13*W/18;           % right bound
+
 % For overall rating scale
 lb2 = 5*W/18; %
 rb2 = 13*W/18; %s

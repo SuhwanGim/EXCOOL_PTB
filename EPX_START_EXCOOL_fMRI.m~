@@ -14,12 +14,12 @@ opts.testmode = 0;    % do test mode (not full screens)
 opts.kbd = 1;         % 0: own keyboard
                       % 1: external button-box
                       % 2. external wheel
-%% SETUP: Subj Information 
 ts = []; 
 ts = generate_ts_EXCOOL();
 ts.target_names = {'나','장지혁','장범준'}; 
 ts.opts = opts;
-SID.ExpID = 'EX004';           % ID for fMRI exp participants
+%% SETUP: Subj Information 기
+SID.ExpID = 'EX003';           % ID for fMRI exp participants
 %% START 
 % RUN1 : RESTING-STATE (10mins)
 resting_state(SID, 1, opts);
@@ -36,7 +36,7 @@ fMRI_task(SID, ts, 2, opts);
 %% TASK3
 fMRI_task(SID, ts, 3, opts);
 
-%% TASK4 
+%% TASK4  sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
 fMRI_task(SID, ts, 4, opts);
 
 
