@@ -317,7 +317,7 @@ end
 %           TASK                              %
 %  ------------------------------------------ %
 
-function temp_ratings = get_ratings(conds, total_secs, start_t,varargin)
+function temp_ratings = get_ratings(total_secs, start_t,varargin)
 
 global theWindow W H window_num;                  % window screen property
 global white red red_Alpha orange bgcolor yellow; % set color
@@ -326,6 +326,7 @@ global lb1 rb1 lb2 rb2;
 global cir_center
 global fontsize
 %%
+
 rec_i = 0;
 start_while = GetSecs;
 SetMouse(cir_center(1),cir_center(2));
@@ -333,24 +334,21 @@ while GetSecs - start_t < total_secs
     [x,y,button]=GetMouse(theWindow);
     y = H/2+scale_H/2;%bb;
     rec_i= rec_i+1;
-    
-    % send to inside of line
+    % send to arc of semi-circle
     if x<lb
         x = lb;
-        SetMouse(x,y);
     end
     
     if  x>rb
         x = rb;
-        SetMouse(x,y);
-    end    
+    end
+    SetMouse(x,y);
     xloc = num2str((x-lb)./(rb-lb)); % nomalized ratings (from zero to 1) 
     
     
-    %msg = double(msg);
-    msgy = double(sprintf('나는 <color=e34a33>%d<font>를\n <color=ffffff><size=%d><u><b> 다정하다고\n',conds,fontsize.*2.4));
-    DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) msgy],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
-	DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) double('라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');        
+    msg = double(msg);
+    %DrawFormattedText(theWindow, msg, 'center', 150, orange, [], [], [], 2);
+    DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize)) msg],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
     draw_scale('line2');
     Screen('DrawDots', theWindow, [x y], 15, orange, [0 0], 1);
     Screen('Flip', theWindow);
@@ -384,8 +382,7 @@ end
 
 function show_cues(conds,total_secs, start_t,varargin)
     
-    inputs = num2str(conds);
-    DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) inputs],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/4,'xalign','center','yalign','center');
+    DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize+10)) num2str(conds)],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/4,'xalign','center','yalign','center');
     Screen('Flip', theWindow);
     %waitsec_fromstarttime(
     
