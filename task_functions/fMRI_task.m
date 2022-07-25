@@ -44,6 +44,8 @@ global fontsize;                                  % fontsize
 global anchor_y anchor_y2 anchor anchor_xl anchor_xr anchor_yu anchor_yd anchor_lms anchor_lms_y anchor_lms_x; % anchors
 global cir_center
 %global Participant; % response box
+
+
 %% SETUP: DATA and Subject INFO
 savedir = fullfile(pwd,'data');
 % subfunction %start_trial
@@ -175,13 +177,13 @@ try
         Screen('Flip', theWindow);
         waitsec_fromstarttime(fmri_t, dat.disdaq_sec); % ADJUST THIS + 8 secs for stable modeling 
     end 
-    
+   
     %% ========================================================= %
     %                   TRIAL START
     % ========================================================== %
     dat.RunStartTime = GetSecs;
-    for trial_i = start_trial:16 % length(ts.t{1})        
-            
+    for trial_i = start_trial:12 % length(ts.t{1})        
+        
         % Trial begins
         trial_t = GetSecs;
         dat.dat{trial_i}.TrialStartTimestamp = trial_t;
@@ -194,54 +196,37 @@ try
         waitsec_fromstarttime(trial_t, ts.t{runNumber}{trial_i}.ITI);
         dat.dat{trial_i}.ITI_EndTime = GetSecs;
         
-        
-        
+                
         % --------------------------------------------------------- %
-        %         2. Target cue 
+        %         2. Target cue (3secs)
         % --------------------------------------------------------- %
         % black screen
         Screen('Flip',theWindow); % black screen
-        DrawFormattedText(theWindow, double(''), 'center', 'center', white, [], [], [], 1.2); % as exactly same as function fixPoint(trial_t, ttp , white, '+') % ITI
-        Screen('Flip', theWindow);
-        waitsec_fromstarttime(trial_t, ts.t{runNumber}{trial_i}.ITI + 12); % From start + ITI + thermal (12 sec)
+        show_cues(target,words)
+        waitsec_fromstarttime(trial_t, ts.t{runNumber}{trial_i}.ITI + 3); % From start + ITI + thermal (3 sec)
         
         
         % --------------------------------------------------------- %
         %         3. ISI1
         % --------------------------------------------------------- %
         ttp = []; % total
-        ttp = ts.t{runNumber}{trial_i}.ITI + 12 + ts.t{runNumber}{trial_i}.ISI1;
+        ttp = ts.t{runNumber}{trial_i}.ITI + 3 + ts.t{runNumber}{trial_i}.ISI1;
         fixPoint(trial_t, ttp , white, '+') % ITI
         dat.dat{trial_i}.ISI1_EndTime=GetSecs;
         
         % --------------------------------------------------------- %
-        %         4. Trait 
+        %         4. Trait and ratings (7secs) 
         % --------------------------------------------------------- %
-        ttp = ttp + 5;
+        ttp = ttp + 7;
         temp_ratings = [];
-        temp_ratings = get_ratings(ttp, trial_t); % get_ratings(rating_type, total_secs, start_t )
-        
-        % --------------------------------------------------------- %
-        %         5. ISI2
-        % --------------------------------------------------------- %
-        ttp = ttp + ts.t{runNumber}{trial_i}.ISI2;
-        fixPoint(trial_t, ttp , white, '+') % ISI2
-        dat.dat{trial_i}.ISI2_EndTime=GetSecs;
-        
-        % --------------------------------------------------------- %
-        %         6. Ratings 
-        % --------------------------------------------------------- %
-        
-        ttp = ttp + 5;
-        temp_ratings = [];
-        temp_ratings = get_ratings( ttp, trial_t); % get_ratings(rating_type, total_secs, start_t )
+        temp_ratings = get_ratings(target,words, ttp, trial_t);
         
         dat.dat{trial_i}.ratings_end_timestamp = GetSecs;
         dat.dat{trial_i}.ratings_con_time_fromstart = temp_ratings.con_time_fromstart;
         dat.dat{trial_i}.ratings_con_xy = temp_ratings.con_xy;
         dat.dat{trial_i}.ratings_con_clicks = temp_ratings.con_clicks;
         dat.dat{trial_i}.norms_ratings = temp_ratings.norms_ratings;
-        
+                    
                 
         % ------------------------------------ %
         %  End of trial (save data)
@@ -317,7 +302,7 @@ end
 %           TASK                              %
 %  ------------------------------------------ %
 
-function temp_ratings = get_ratings(conds, total_secs, start_t,varargin)
+function temp_ratings = get_ratings(target,words, total_secs, start_t,varargin)
 
 global theWindow W H window_num;                  % window screen property
 global white red red_Alpha orange bgcolor yellow; % set color
@@ -345,12 +330,10 @@ while GetSecs - start_t < total_secs
         SetMouse(x,y);
     end    
     xloc = num2str((x-lb)./(rb-lb)); % nomalized ratings (from zero to 1) 
-    
-    
-    %msg = double(msg);
-    msgy = double(sprintf('나는 <color=e34a33>%d<font>를\n <color=ffffff><size=%d><u><b> 다정하다고\n',conds,fontsize.*2.4));
-    DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) msgy],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
-	DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) double('라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');        
+            
+    msgg = double(sprintf('나는 <color=e34a33><b>%s<color=ffffff>를\n <color=505050><size=%d><u><b> %s\n',double(target),fontsize.*2.4),double(words));
+	DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) msgg],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
+	DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) double('라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');    
     draw_scale('line2');
     Screen('DrawDots', theWindow, [x y], 15, orange, [0 0], 1);
     Screen('Flip', theWindow);
@@ -362,15 +345,15 @@ while GetSecs - start_t < total_secs
     temp_ratings.con_clicks(rec_i,:) = button;        
     
     if button(1)
+        msgg = double(sprintf('나는 <color=e34a33><b>%s<color=ffffff>를\n <color=505050><size=%d><u><b> %s\n',double(target),fontsize.*2.4),double(words));
+        DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) msgg],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
+        DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) double('라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');    
         draw_scale('line2');
         Screen('DrawDots', theWindow, [x y]', 18, red, [0 0], 1);  % Feedback
         Screen('Flip',theWindow);
         WaitSecs(min(0.5, 5-(GetSecs-start_while)));
         ready3=0;
-        while ~ready3 %GetSecs - sTime> 5
-            msg = double(' ');
-            DrawFormattedText(theWindow, msg, 'center', 150, white, [], [], [], 1.2);
-            Screen('Flip',theWindow);
+        while ~ready3 %GetSecs - sTime> 5            
             if  GetSecs - start_while > 5
                 break
             end
@@ -382,14 +365,20 @@ while GetSecs - start_t < total_secs
     
 end
 
-function show_cues(conds,total_secs, start_t,varargin)
+function show_cues(target,words)
     
-    inputs = num2str(conds);
-    DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) inputs],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/4,'xalign','center','yalign','center');
+    global theWindow W H window_num;                  % window screen property
+    global white red red_Alpha orange bgcolor yellow; % set color
+    global window_rect lb rb tb bb scale_H            % scale size parameter
+    global lb1 rb1 lb2 rb2;
+    global cir_center
+    global fontsize
+    
+    msgg = double(sprintf('나는 <color=e34a33><b>%s<color=ffffff>를\n <color=505050><size=%d><u><b> %s\n',double(target),fontsize.*2.4),double(words));
+    DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) msgg],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
+	DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) double('라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');    
     Screen('Flip', theWindow);
-    %waitsec_fromstarttime(
-    
-    
+    %waitsec_fromstarttime(start_t,total_secs);
 end
     
 

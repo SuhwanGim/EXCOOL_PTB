@@ -155,7 +155,13 @@ while ~ready2
 %     DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize)) xloc],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
 %     y = double('실험자 저는 김수환입니다');    
 %     DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) y],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/4,'xalign','center','yalign','center');
-    msgy = double(sprintf('나는 <color=e34a33>%d<font>를\n <color=ffffff><size=%d><u><b> 다정하다고\n','ㅇ',fontsize.*2.4));
+    msgy1 = double(sprintf('나는 <color=e34a33><b>%s<color=e34a33>를\n <color=ffffff><size=%d><u><b> 다정하다고\n',double('친구'),fontsize.*2.4));
+    msgy2 = double(sprintf('나는 <color=e34a33><b>%s<color=e34a33>를\n <color=505050><size=%d><u><b> 다정하다고\n',double('친구'),fontsize.*2.4));
+    if x < (window_rect(1) + window_rect(3))/2
+        msgy = msgy1;
+    else
+        msgy = msgy2;
+    end
     DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) msgy],'win',theWindow,'sx','center','sy',(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
 	DrawFormattedText2([double(sprintf('<size=%d><font=-:lang=ko><color=ffffff>',fontsize.*1.4)) double('라고 생각한다')],'win',theWindow,'sx','center','sy',2*(window_rect(2)+window_rect(4))/3,'xalign','center','yalign','center');
     %[~,~,bbox,cache,wbounds]=DrawFormattedText2('<font=Courier New><size=27>test\n<font=Times New Roman>scr<font><font>een<font> is\n<b><size=50>UGLY\n<size=12><b><u><i>Isn''t it?','win',theWindow,'sx','center','sy','center','xalign','center','yalign','center');
