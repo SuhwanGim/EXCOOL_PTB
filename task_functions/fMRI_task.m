@@ -185,7 +185,7 @@ try
     for trial_i = start_trial:18 % length(ts.t{1})        
         
         % Parse target and words
-        target_conds=ts.target{runNumber}(trial_i);
+        target_conds=ts.target_names{ts.target{runNumber}(trial_i)};
         wordst = ts.table.word(ts.WID{runNumber}(trial_i));
         valence = ts.table.positive(ts.WID{runNumber}(trial_i));
         % Trial begins
@@ -206,7 +206,7 @@ try
         % --------------------------------------------------------- %
         % black screen
         Screen('Flip',theWindow); % black screen
-        show_cues(target,wordst)
+        show_cues(target_conds,wordst)
         waitsec_fromstarttime(trial_t, ts.ITI{runNumber}{trial_i}(1) + 3); % From start + ITI + thermal (3 sec)
         
         
@@ -223,7 +223,7 @@ try
         % --------------------------------------------------------- %
         ttp = ttp + 7;
         temp_ratings = [];        
-        temp_ratings = get_ratings(target, wordst, ttp, trial_t);
+        temp_ratings = get_ratings(target_conds, wordst, ttp, trial_t);
         
         dat.dat{trial_i}.target = target;
         dat.dat{trial_i}.WID = WID; % wordID

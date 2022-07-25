@@ -16,7 +16,7 @@ opts.kbd = 1;         % 0: own keyboard
                       % 2. external wheel
 
 ts = generate_ts_EXCOOL();
-ts.target_names = ['나','친구','연예인']; 
+ts.target_names = {'나','친구','연예인'}; 
 ts.opts = opts;
 %% SETUP: Subj Information 
 SID.ExpID = 'ttteeee';           % ID for fMRI exp participants
@@ -30,13 +30,13 @@ resting_state(SID, 2, opts);
 fMRI_task(SID, ts, 1, opts);
 
 %% TASK2 
-fMRI_task(SID, st, 2, opts);
+fMRI_task(SID, ts, 2, opts);
 
 %% TASK3
-fMRI_task(SID, st, 3, opts);
+fMRI_task(SID, ts, 3, opts);
 
 %% TASK4 
-fMRI_task(SID, st, 4, opts);
+fMRI_task(SID, ts, 4, opts);
 
 
 %% Structural imaging (10mins)
