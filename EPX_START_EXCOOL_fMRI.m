@@ -22,6 +22,7 @@ ts.opts = opts;
 SID.ExpID = 'EX004';           % ID for fMRI exp participants
 %% START 
 % RUN1 : RESTING-STATE (10mins)
+SID.ExpID ='testtttt';
 resting_state(SID, 1, opts);
 % %% RUN2 : RESTING-STATE (10mins)
 % resting_state(SID, 2, opts);
@@ -37,7 +38,7 @@ fMRI_task(SID, ts, 2, opts);
 fMRI_task(SID, ts, 3, opts);
 
 %% TASK4 
-fMRI_task(SID, ts, 4, opts); sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss 
+fMRI_task(SID, ts, 4, opts); 
 
 
 %% Structural imaging (10mins)

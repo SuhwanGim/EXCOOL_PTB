@@ -1,12 +1,7 @@
 function resting_state(SID, runNumber, opts)
-%% Movie watching in a scanner without ratings
-
-%% Which movie?
-
 %% SETUP: OPTIONS
 testmode = opts.testmode;
 dofmri = opts.dofmri;
-%iscomp = 3; % default: macbook keyboard
 %% SETUP: GLOBAL variables
 global theWindow W H window_num;                  % window screen property
 global white red red_Alpha orange bgcolor yellow; % set color
@@ -52,6 +47,33 @@ else
 end
 W = window_rect(3); %width of screen
 H = window_rect(4); %height of screen
+
+
+tb = H/5+100;           % in 800, it's 310
+bb = H/2+100;           % in 800, it's 450, bb-tb = 340
+scale_H = (bb-tb).*0.25;
+
+anchor_xl = lb-80; % 284
+anchor_xr = rb+20; % 916
+anchor_yu = tb-40; % 170
+anchor_yd = bb+20; % 710
+
+% y location for anchors of rating scales -
+anchor_y = H/2+10+scale_H;
+
+% For rating scale
+lb = 5*W/18;            % left bound
+rb = 13*W/18;           % right bound
+
+
+lb1 = 5*W/18;            % left bound
+rb1 = 13*W/18;           % right bound
+
+% For overall rating scale
+lb2 = 5*W/18; %
+rb2 = 13*W/18; %s
+
+cir_center = [(lb1+rb1)/2 H*3/4+100];
 %% SETUP: Screen color
 bgcolor = 80;
 white = 255;
@@ -59,6 +81,37 @@ red = [255 0 0];
 red_Alpha = [255 164 0 130]; % RGB + A(Level of tranceprency)
 orange = [255 164 0];
 yellow = [255 220 0];
+%% SETUP: External device name for matching
+%===== Experimenter
+iscomp = 3;
+if iscomp == 1
+    device(1).product = 'Apple Keyboard';   % imac scanner (full keyboard)
+    device(1).vendorID= 1452;
+elseif iscomp == 2
+    device(1).product = 'Magic Keyboard';   % imac vcnl (short keyboard)
+    device(1).vendorID= 1452;
+elseif iscomp == 3
+    device(1).product = 'Apple Internal Keyboard / Trackpad';   % macbook
+    device(1).vendorID= 1452;
+elseif iscomp == 4
+    device(1).product = 'Magic Keyboard';         % my pc
+    device(1).vendorID = 1452;
+end
+experimenter = IDkeyboards(device(1));
+if dofmri
+    % ===== Participant's button box
+    % "HID KEY 12345"
+    device(2).product = '932';
+    device(2).vendorID= [1240 6171];
+    
+    Participant  = IDkeyboards(device(2));
+    
+    
+    % ===== Scanner trigger
+    device(3).product = 'KeyWarrior8 Flex';
+    device(3).vendorID= 1984;
+    scanner = IDkeyboards(device(3));    
+end
 %% SETUP: Screen parameters
 font = 'NanumBarunGothic';
 stimText = '+';
@@ -85,7 +138,7 @@ try
         % but if behavioral, it will start with "r" key.
         
         if dofmri
-            [~,~,keyCode] = KbCheck; % experiment
+            [~,~,keyCode] = KbCheck(scanner); % experiment
             if keyCode(KbName('s'))==1 % get 's' from a sync box
                 break
             elseif keyCode(KbName('q'))==1
