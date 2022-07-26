@@ -17,7 +17,7 @@ opts.kbd = 1;         % 0: own keyboard
 %% SETUP: Subj Information 
 ts = []; 
 ts = generate_ts_EXCOOL();
-ts.target_names = {'나','장지혁','장범준'}; 
+ts.target_names = {'나','송민호','송강'}; 
 ts.opts = opts;
 SID.ExpID = 'EX004';           % ID for fMRI exp participants
 %% START 
@@ -27,7 +27,7 @@ resting_state(SID, 1, opts);
 % resting_state(SID, 2, opts);
 
 %% TASK1  
-opts.testmode = 0; 
+opts.testmode = 0;  
 fMRI_task(SID, ts, 1, opts);
 
 %% TASK2 
@@ -37,7 +37,7 @@ fMRI_task(SID, ts, 2, opts);
 fMRI_task(SID, ts, 3, opts);
 
 %% TASK4 
-fMRI_task(SID, ts, 4, opts);
+fMRI_task(SID, ts, 4, opts); sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss 
 
 
 %% Structural imaging (10mins)
