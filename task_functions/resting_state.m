@@ -181,11 +181,11 @@ try
     % ========================================================== %
     t_time = GetSecs;
     dat.RunStartTime = t_time ;
-    seconds = 600; % 600 secs without disdaq
+    seconds = 550; % 600 secs without disdaq
     
-    %DrawFormattedText(theWindow, double(stimText), 'center', 'center', white, [], [], [], 1.2);
+    %DrawFormattedText(theWindow, double(stimText), 'center', 'center', white, [], [], [], 1.2);    
     display_expmessage('+');
-    Screen('Flip', theWindow);
+    
     
     waitsec_fromstarttime(t_time, seconds);
     dat.RunEndTime = GetSecs;
