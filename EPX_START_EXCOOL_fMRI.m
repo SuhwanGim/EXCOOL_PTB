@@ -17,10 +17,13 @@ opts.kbd = 1;         % 0: own keyboard
 %% SETUP: Subj Information 
 ts = []; 
 ts = generate_ts_EXCOOL();
-ts.target_names = {'나','이현정','아이유'}; 
+ts.target_names = {'나','진민규','정우성'}; 
+% {1}: ME
+% {2}: Friends
+% {3}: clebritiy
 ts.opts = opts;
-SID.ExpID = 'EX006';           % ID for fMRI exp participants
-%% START 
+SID.ExpID = 'EX010';           % ID for fMRI exp participants
+ %% START 
 % RUN1 : RESTING-STATE (10mins)
  resting_state(SID, 1, opts);
 % %% RUN2 : RESTING-STATE (10mins)
@@ -39,5 +42,5 @@ fMRI_task(SID, ts, 3, opts);
 
 %% TASK4  
 
-
+fMRI_task(SID, ts, 4 , opts);
 %% Structural imaging (10mins)
